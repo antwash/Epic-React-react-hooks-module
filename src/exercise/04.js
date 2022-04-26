@@ -1,10 +1,17 @@
 // useState: tic tac toe
 // http://localhost:3000/isolated/exercise/04.js
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 function Board() {
-  const [squares, setSquares] = useState(Array(9).fill(null))
+  const [squares, setSquares] = useState(() => {
+    const defaultSquares = JSON.stringify(Array(9).fill(null))
+    return JSON.parse(window.localStorage.getItem("squares")) ?? defaultSquares
+  })
+
+  useEffect(() => {
+    window.localStorage.setItem("squares", JSON.stringify(squares))
+  }, [squares])
 
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
