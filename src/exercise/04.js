@@ -3,40 +3,11 @@
 
 import { useLocalStorageState } from "../utils"
 
-function Board() {
-  const [squares, setSquares] = useLocalStorageState("squares", Array(9).fill(null))
-
-  const nextValue = calculateNextValue(squares)
-  const winner = calculateWinner(squares)
-  const status = calculateStatus(winner, squares, nextValue)
-
-  // This is the function your square click handler will call. `square` should
-  // be an index. So if they click the center square, this will be `4`.
-  function selectSquare(square) {
-    // if there's already winner or there's already a value at the
-    // given square index (like someone clicked a square that's already been
-    // clicked), then return early so we don't make any state changes
-    if (winner || squares[square]) {
-      return
-    }
-
-    const newSquares = squares.map((s, index) => {
-      if (index === square) {
-        return nextValue
-      }
-      return s
-    })
-    setSquares(newSquares)
-  }
-
-  function restart() {
-    const resetSquares = Array(9).fill(null)
-    setSquares(resetSquares)
-  }
-
+const squaresInitialValue = [Array(9).fill(null)]
+function Board({ onClick, squares }) {
   function renderSquare(i) {
     return (
-      <button className="square" onClick={() => selectSquare(i)}>
+      <button className="square" onClick={() => onClick(i)}>
         {squares[i]}
       </button>
     )
@@ -44,7 +15,6 @@ function Board() {
 
   return (
     <div>
-      <div className="status">{status}</div>
       <div className="board-row">
         {renderSquare(0)}
         {renderSquare(1)}
@@ -60,18 +30,85 @@ function Board() {
         {renderSquare(7)}
         {renderSquare(8)}
       </div>
-      <button className="restart" onClick={restart}>
-        restart
-      </button>
     </div>
   )
 }
 
 function Game() {
+  /**
+   * Keep a history of the game that allows you to go backward and forward in time
+   * - It renders the entire history
+   * - Clicking a listed history button updates the board state to that time
+   * - In a previous listed history board state, clicking a new move rewrites history
+   *
+   * [
+   *  { board: At that time in history } // initial = currentStep = 0
+   *  { board: After first person moves } // currentStep = 1
+   *  { board: After second person moves } // currentStep = 2
+   * ]
+   *
+   * Steps:
+   * = X clicks spot
+   * = O clicks spot
+   * = Click Step 1 to review history, currentStep = 1
+   * = O clicks a spot and board history[2+] is cleared and history[1] is saved
+   * */
+  const [history, setHistory] = useLocalStorageState("history", squaresInitialValue)
+  const [currentStep, setCurrentStep] = useLocalStorageState("step", history.length - 1 ?? 0)
+
+  const currentSquares = history[currentStep]
+  const nextValue = calculateNextValue(currentSquares)
+  const winner = calculateWinner(currentSquares)
+  const status = calculateStatus(winner, currentSquares, nextValue)
+
+  const handleHistoryStepClicked = (index) => setCurrentStep(index)
+  const handleRestartBtnClicked = () => {
+    setCurrentStep(0)
+    setHistory(squaresInitialValue)
+  }
+
+  // This is the function your square click handler will call. `square` should
+  // be an index. So if they click the center square, this will be `4`.
+  function handleSelectSquare(square) {
+    // if there's already winner or there's already a value at the
+    // given square index (like someone clicked a square that's already been
+    // clicked), then return early so we don't make any state changes
+    if (winner || currentSquares[square]) {
+      return
+    }
+
+    const newSquares = currentSquares.map((s, index) => {
+      if (index === square) {
+        return nextValue
+      }
+      return s
+    })
+
+    const newHistory = history.slice(0, currentStep + 1)
+    setHistory([...newHistory, newSquares])
+    setCurrentStep(newHistory.length)
+  }
+
+  const renderMoves = () => (
+    history.map((h, index) => {
+      const isInitial = index === 0
+      const isCurrent = currentStep === index
+      const label = `${isInitial ? "Go to game start" : `Go to move #${index}`} ${isCurrent ? "(current)": ""}`
+      return <li key={index}><button key={index} disabled={isCurrent} onClick={() => handleHistoryStepClicked(index)}>{label}</button></li>
+    })
+  )
+
   return (
     <div className="game">
       <div className="game-board">
-        <Board />
+        <Board onClick={handleSelectSquare} squares={currentSquares} />
+        <button className="restart" onClick={handleRestartBtnClicked}>
+          restart
+        </button>
+      </div>
+      <div className="game-info">
+        <div>{status}</div>
+        <ol>{renderMoves()}</ol>
       </div>
     </div>
   )
