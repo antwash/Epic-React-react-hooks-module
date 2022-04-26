@@ -3,15 +3,26 @@
 
 import { useState, useEffect } from "react";
 
-function Board() {
-  const [squares, setSquares] = useState(() => {
-    const defaultSquares = JSON.stringify(Array(9).fill(null))
-    return JSON.parse(window.localStorage.getItem("squares")) ?? defaultSquares
+function useLocalStorageState({ key, initialValue }) {
+  const [value, setValue] = useState(() => {
+    return JSON.parse(window.localStorage.getItem(key)) ?? initialValue
   })
 
   useEffect(() => {
-    window.localStorage.setItem("squares", JSON.stringify(squares))
-  }, [squares])
+    window.localStorage.setItem(key, JSON.stringify(value))
+  }, [key, value])
+
+  return [
+    value,
+    setValue
+  ]
+}
+
+function Board() {
+  const [squares, setSquares] = useLocalStorageState({
+    key:"squares",
+    initialValue: Array(9).fill(null)
+  })
 
   const nextValue = calculateNextValue(squares)
   const winner = calculateWinner(squares)
