@@ -12,13 +12,14 @@ const ErrorFallBack = (props) => {
   return (
     <div role="alert">
       There was an error: <pre style={{ whiteSpace: 'normal' }}>{props.error.message}</pre>
+      <button onClick={props.resetErrorBoundary}>Try again!</button>
     </div>
   )
 }
 
 function PokemonInfo({ pokemonName }) {
   const [state, setState] = React.useState({
-    status: "idle",
+    status: pokemonName ? "pending" : "idle",
     pokemon: null,
     error: null
   })
@@ -72,7 +73,7 @@ function App() {
       <hr />
       <div className="pokemon-info">
         {/*Error boundary remounts with new state after a caught error when pokemonName is changed*/}
-        <ErrorBoundary key={pokemonName} FallbackComponent={ErrorFallBack}>
+        <ErrorBoundary FallbackComponent={ErrorFallBack} onReset={() => setPokemonName("")}>
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
