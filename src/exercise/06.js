@@ -73,7 +73,11 @@ function App() {
       <hr />
       <div className="pokemon-info">
         {/*Error boundary remounts with new state after a caught error when pokemonName is changed*/}
-        <ErrorBoundary FallbackComponent={ErrorFallBack} onReset={() => setPokemonName("")}>
+        <ErrorBoundary
+          FallbackComponent={ErrorFallBack} 
+          onReset={() => setPokemonName("")}
+          resetKeys={[pokemonName]}
+        >
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
