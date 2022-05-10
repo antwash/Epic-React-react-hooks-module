@@ -90,7 +90,8 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <ErrorBoundary FallBackComponent={ErrorFallBack}>
+        {/*Error boundary remounts with new state after a caught error when pokemonName is changed*/}
+        <ErrorBoundary key={pokemonName} FallBackComponent={ErrorFallBack}>
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
