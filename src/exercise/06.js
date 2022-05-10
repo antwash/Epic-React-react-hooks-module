@@ -5,6 +5,36 @@ import * as React from 'react'
 
 import { fetchPokemon, PokemonDataView, PokemonInfoFallback, PokemonForm } from "../pokemon"
 
+
+const ErrorFallBack = (props) => {
+  return (
+    <div role="alert">
+      There was an error: <pre style={{ whiteSpace: 'normal' }}>{props.error.message}</pre>
+    </div>
+  )
+}
+
+/**
+ Handle error that occur with the fetch call and runtime errors in Javascript (e.g, accessing a property on null object)
+ */
+class ErrorBoundary extends React.Component {
+  state = { error: null }
+
+  // Returns the state of the ErrorBoundary component on error
+  static getDerivedStateFromError(error) {
+    return { error }
+  }
+
+  render() {
+    const { error } = this.state
+
+    if (error) {
+      return <this.props.FallBackComponent error={error} />
+    }
+    return this.props.children
+  }
+}
+
 function PokemonInfo({ pokemonName }) {
   const [state, setState] = React.useState({
     status: "idle",
@@ -38,11 +68,7 @@ function PokemonInfo({ pokemonName }) {
   }
 
   if (state.status === "rejected") {
-    return (
-      <div role="alert">
-        There was an error: <pre style={{whiteSpace: 'normal'}}>{state.error.message}</pre>
-      </div>
-    )
+    throw state.error
   }
 
   if (state.status  === "pending") {
@@ -64,7 +90,9 @@ function App() {
       <PokemonForm pokemonName={pokemonName} onSubmit={handleSubmit} />
       <hr />
       <div className="pokemon-info">
-        <PokemonInfo pokemonName={pokemonName} />
+        <ErrorBoundary FallBackComponent={ErrorFallBack}>
+          <PokemonInfo pokemonName={pokemonName} />
+        </ErrorBoundary>
       </div>
     </div>
   )
