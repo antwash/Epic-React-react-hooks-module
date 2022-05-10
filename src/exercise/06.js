@@ -3,6 +3,8 @@
 
 import * as React from 'react'
 
+import { ErrorBoundary } from "react-error-boundary"
+
 import { fetchPokemon, PokemonDataView, PokemonInfoFallback, PokemonForm } from "../pokemon"
 
 
@@ -12,27 +14,6 @@ const ErrorFallBack = (props) => {
       There was an error: <pre style={{ whiteSpace: 'normal' }}>{props.error.message}</pre>
     </div>
   )
-}
-
-/**
- Handle error that occur with the fetch call and runtime errors in Javascript (e.g, accessing a property on null object)
- */
-class ErrorBoundary extends React.Component {
-  state = { error: null }
-
-  // Returns the state of the ErrorBoundary component on error
-  static getDerivedStateFromError(error) {
-    return { error }
-  }
-
-  render() {
-    const { error } = this.state
-
-    if (error) {
-      return <this.props.FallBackComponent error={error} />
-    }
-    return this.props.children
-  }
 }
 
 function PokemonInfo({ pokemonName }) {
@@ -91,7 +72,7 @@ function App() {
       <hr />
       <div className="pokemon-info">
         {/*Error boundary remounts with new state after a caught error when pokemonName is changed*/}
-        <ErrorBoundary key={pokemonName} FallBackComponent={ErrorFallBack}>
+        <ErrorBoundary key={pokemonName} FallbackComponent={ErrorFallBack}>
           <PokemonInfo pokemonName={pokemonName} />
         </ErrorBoundary>
       </div>
